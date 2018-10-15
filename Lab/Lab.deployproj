@@ -29,6 +29,14 @@
       <Visible>False</Visible>
     </None>
     <Content Include="Deploy-AzureResourceGroup.ps1" />
+    <None Include="nestedtemplates\Domain.json" />
+    <None Include="nestedtemplates\NSG-Apps.json" />
+    <None Include="nestedtemplates\NSG-GatewaySubnet.json" />
+    <None Include="nestedtemplates\NSG-Identity.json" />
+    <None Include="nestedtemplates\VNET.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="scripts\" />
   </ItemGroup>
   <Target Name="GetReferenceAssemblyPaths" />
 </Project>

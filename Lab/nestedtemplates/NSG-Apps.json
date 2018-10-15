@@ -1,0 +1,43 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "Subnet": {
+      "type": "string"
+      }
+  },
+  "variables": {
+  },
+  "resources": [
+    {
+      "apiVersion": "[providers('Microsoft.Network','networkSecurityGroups').apiVersions[0]]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[concat('NSG-', parameters('Subnet'))]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "PermitInternet_IN",
+            "properties": {
+              "description": "Permit Internet",
+              "protocol": "Tcp",
+              "sourcePortRange": "80",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "INTERNET",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 110,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "ResourceID": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/networkSecurityGroups', concat('NSG-',  parameters('Subnet')))]"
+    }
+  }
+}

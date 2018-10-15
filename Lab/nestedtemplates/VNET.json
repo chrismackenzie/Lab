@@ -1,0 +1,60 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualNetwork": {
+      "type": "object",
+      "defaultValue": {
+        "vNet": {
+          "name": "Lab",
+          "addressPrefixes": [ "172.16.0.0/19" ]
+        },
+        "subnets": [
+          {
+            "name": "GatewaySubnet",
+            "addressPrefix": "172.16.0.0/27",
+            "hasNSG":  "no"
+          },
+          {
+            "name": "Identity",
+            "addressPrefix": "172.16.1.0/24",
+            "hasNSG": "no"
+          }
+        ]
+      },
+      "metadata": {
+        "description": "Complex object containing information for the spoke vNet.  See defaultValue for example."
+      }
+    }
+  },
+  "variables": {
+  },
+  "resources": [
+    {
+      "apiVersion": "[providers('Microsoft.Network','virtualNetworks').apiVersions[0]]",
+      "name": "[parameters('virtualNetwork').vNet.name]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": "[parameters('virtualNetwork').vNet.addressPrefixes]"
+        },
+        "copy": [
+          {
+            "name": "subnets",
+            "count": "[length(parameters('virtualNetwork').subnets)]",
+            "input": {
+              "name": "[parameters('virtualNetwork').subnets[copyIndex('subnets')].name]",
+              "properties": {
+                "addressPrefix": "[parameters('virtualNetwork').subnets[copyIndex('subnets')].addressPrefix]",
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat('NSG-', parameters('virtualNetwork').subnets[copyIndex('subnets')].name))]"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

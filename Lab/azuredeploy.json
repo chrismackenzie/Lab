@@ -1,8 +1,73 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": {},
-  "variables": {},
-  "resources": [],
-  "outputs": {}
+  "parameters": {
+  },
+  "variables": {
+    "templateBaseUrl": "https://github.com/chrismackenzie/Lab",
+    "virtualNetwork": {
+      "type": "object",
+      "vNet": {
+        "name": "LabNet",
+        "addressPrefixes": [ "10.16.96.0/19", "172.16.96.0/19" ]
+      },
+      "subnets": [
+        {
+          "name": "GatewaySubnet",
+          "addressPrefix": "10.16.96.0/27"
+        },
+        {
+          "name": "Identity",
+          "addressPrefix": "10.16.97.0/24"
+        },
+        {
+          "name": "Apps",
+          "addressPrefix": "10.16.98.0/24"
+        }
+      ]
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2017-05-10",
+      "name": "VirtualNetwork",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "NSGs"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('templateBaseUrl'), '/VNET.json', variables('containerSASToken'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "virtualNetwork": {
+            "value": "[variables('virtualNetwork')]"
+          }
+        }
+      }
+    },
+    {
+      "copy": {
+        "name": "NSGs",
+        "count": "[length(variables('virtualNetwork').subnets)]"
+      },
+      "apiVersion": "2017-05-10",
+      "name": "[concat('NSG-', variables('virtualNetwork').subnets[copyIndex('NSGs')].name)]",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[concat(variables('templateBaseUrl'), '/NSG-', variables('virtualNetwork').subnets[copyIndex('NSGs')].name,'.json', variables('containerSASToken'))]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "subnet": {
+            "value": "[variables('virtualNetwork').subnets[copyIndex('NSGs')].name]"
+          }
+        }
+      }
+    }
+  ]
 }
